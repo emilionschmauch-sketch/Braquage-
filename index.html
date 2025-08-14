@@ -1,40 +1,86 @@
-import React, { useState } from "react"; import { motion, AnimatePresence } from "framer-motion";
+import React, { useState } from "react";
 
-// Jeu de données des cartes sans éperon const cartes = [ { nom: "Justicier de l'Ouest", type: "Justicier", force: 3, effet: "Protège un joueur ou lui-même en annulant l'effet d'une carte bandit." }, { nom: "Bandit solitaire", type: "Bandit", force: 2, effet: "Peut voler une carte à un joueur ciblé." }, { nom: "Soutien logistique", type: "Soutien", force: 0, effet: "Permet à un joueur de piocher deux cartes supplémentaires." }, { nom: "Coup de bluff", type: "Boost", force: 0, effet: "Double la force d'une carte jouée pour ce tour uniquement." }, { nom: "Convoyeur de banque", type: "Convoyeur", force: 4, effet: "Permet de transférer une somme d'argent sécurisée à Washington." } ];
+// Jeu de données des cartes sans éperon
+const cartes = [
+  { nom: "Justicier de l'Ouest", type: "Justicier", force: 3, effet: "Protège un joueur ou lui-même en annulant l'effet d'une carte bandit." },
+  { nom: "Bandit solitaire", type: "Bandit", force: 2, effet: "Peut voler une carte à un joueur ciblé." },
+  { nom: "Soutien logistique", type: "Soutien", force: 0, effet: "Permet à un joueur de piocher deux cartes supplémentaires." },
+  { nom: "Coup de bluff", type: "Boost", force: 0, effet: "Double la force d'une carte jouée pour ce tour uniquement." },
+  { nom: "Convoyeur de banque", type: "Convoyeur", force: 4, effet: "Permet de transférer une somme d'argent sécurisée à Washington." }
+];
 
-// Couleurs par type const couleursType = { Justicier: "bg-yellow-400", Bandit: "bg-red-500", Soutien: "bg-blue-500", Boost: "bg-gray-400", Convoyeur: "bg-orange-500" };
+// Couleurs par type
+const couleursType = {
+  Justicier: "bg-yellow-400",
+  Bandit: "bg-red-500",
+  Soutien: "bg-blue-500",
+  Boost: "bg-gray-400",
+  Convoyeur: "bg-orange-500"
+};
 
-export default function App() { const [carteSelectionnee, setCarteSelectionnee] = useState(null);
+export default function App() {
+  const [carteSelectionnee, setCarteSelectionnee] = useState(null);
 
-const envoyerInvitation = () => { alert("Invitation envoyée à votre ami (simulation)"); // Ici, dans la vraie app : appel backend pour envoyer notification push };
+  const envoyerInvitation = () => {
+    alert("Invitation envoyée à votre ami (simulation)");
+  };
 
-return ( <div className="w-full h-screen flex flex-col bg-green-900 text-white"> <div className="flex justify-between items-center p-4 bg-green-800"> <h1 className="text-xl font-bold">Braquage - Partie en cours</h1> <button
-onClick={envoyerInvitation}
-className="bg-blue-600 px-3 py-1 rounded"
-> Inviter un ami </button> </div>
+  const jouerCarte = () => {
+    console.log("Jouer la carte:", carteSelectionnee);
+    setCarteSelectionnee(null);
+  };
 
-<div className="flex-1 p-4 overflow-y-auto">
-    <h2 className="text-2xl font-bold mb-4">Votre main</h2>
-    <div className="flex space-x-4 overflow-x-auto pb-4">
-      {cartes.map((carte, index) => (
-        <motion.div
-          key={index}
-          whileHover={{ scale: 1.05 }}
-          className={`min-w-[120px] p-2 rounded-lg cursor-pointer shadow-lg ${
-            couleursType[carte.type]
-          }`}
-          onClick={() => setCarteSelectionnee(carte)}
-        >
-          <div className="font-bold text-lg">{carte.nom}</div>
-          {carte.force > 0 && (
-            <div className="text-sm">Force: {carte.force}</div>
-          )}
-        </motion.div>
-      ))}
+  return (
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-4">Braquage - Partie en cours</h1>
+      <button
+        onClick={envoyerInvitation}
+        className="mb-4 px-4 py-2 bg-green-500 text-white rounded"
+      >
+        Inviter un ami
+      </button>
+
+      <h2 className="text-xl mb-2">Votre main</h2>
+      <div className="flex gap-2 flex-wrap">
+        {cartes.map((carte, index) => (
+          <div
+            key={index}
+            onClick={() => setCarteSelectionnee(carte)}
+            className={`cursor-pointer p-2 rounded shadow ${couleursType[carte.type]}`}
+          >
+            <strong>{carte.nom}</strong>
+            {carte.force > 0 && <div>Force: {carte.force}</div>}
+          </div>
+        ))}
+      </div>
+
+      {carteSelectionnee && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-4 rounded shadow w-80">
+            <h3 className="text-lg font-bold mb-2">{carteSelectionnee.nom}</h3>
+            <div>Type: {carteSelectionnee.type}</div>
+            {carteSelectionnee.force > 0 && <div>Force: {carteSelectionnee.force}</div>}
+            <div className="my-2">{carteSelectionnee.effet}</div>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setCarteSelectionnee(null)}
+                className="px-3 py-1 bg-gray-300 rounded"
+              >
+                Fermer
+              </button>
+              <button
+                onClick={jouerCarte}
+                className="px-3 py-1 bg-blue-500 text-white rounded"
+              >
+                Jouer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
-  </div>
-
-  {/* Pop-up carte */}
+  );
+}  {/* Pop-up carte */}
   <AnimatePresence>
     {carteSelectionnee && (
       <motion.div
