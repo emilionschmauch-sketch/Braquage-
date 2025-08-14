@@ -5,36 +5,101 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Braquage - Partie en cours</title>
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    padding: 20px;
-    background: #f4f4f4;
+  body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4; }
+  h1, h2 { margin-bottom: 10px; }
+  .btn { padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; margin-bottom: 20px; }
+  .btn-inviter { background: #28a745; color: white; }
+  .hand { display: flex; flex-wrap: wrap; gap: 10px; }
+  .carte { padding: 10px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); cursor: pointer; min-width: 120px; color: white; }
+  .Justicier { background: #facc15; color: #000; }
+  .Hors-la-loi { background: #ef4444; }
+  .Soutien { background: #3b82f6; }
+  .Boost { background: #9ca3af; }
+  .Convoyeur { background: #f97316; }
+
+  /* Pop-up */
+  .popup-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; }
+  .popup { background: white; padding: 20px; border-radius: 8px; width: 300px; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+  .popup button { margin-top: 10px; margin-right: 5px; padding: 6px 10px; border: none; border-radius: 4px; cursor: pointer; }
+  .btn-fermer { background: #6b7280; color: white; }
+  .btn-jouer { background: #3b82f6; color: white; }
+</style>
+</head>
+<body>
+
+<h1>Braquage - Partie en cours</h1>
+<button class="btn btn-inviter" onclick="envoyerInvitation()">Inviter un ami</button>
+
+<h2>Votre main</h2>
+<div class="hand" id="main"></div>
+
+<!-- Pop-up carte -->
+<div class="popup-bg" id="popupBg">
+  <div class="popup" id="popupCarte">
+    <h3 id="popupNom"></h3>
+    <div id="popupType"></div>
+    <div id="popupForce"></div>
+    <div id="popupEffet" style="margin-top:10px;"></div>
+    <div style="margin-top:15px;">
+      <button class="btn-fermer" onclick="fermerPopup()">Fermer</button>
+      <button class="btn-jouer" onclick="jouerCarte()">Jouer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Tes cartes originales (extraites et simplifiées ici, tu peux ajouter toutes tes cartes)
+  const cartes = [
+    { nom: "Diligence", type: "Convoyeur", force: 3, effet: "Transférez 3000$ à Washington. Misez n'importe quelle somme pour transférer 1000$ supplémentaires par 1000$ ainsi misés." },
+    { nom: "Long Courrier", type: "Convoyeur", force: 2, effet: "Transférez 3000$ à Washington. Misez n'importe quelle somme pour transférer 1000$ supplémentaires par 1000$ ainsi misés." },
+    { nom: "Bandit de Grand chemin", type: "Hors-la-loi", force: 2, effet: "Volez 2000$ dans le coffre ciblé. son propriétaire gagne un sac de sable." },
+    { nom: "Shériff Bill", type: "Justicier", force: 6, effet: "Gagnez 3000$." },
+    { nom: "Soutien logistique", type: "Soutien", force: 0, effet: "Permet à un joueur de piocher deux cartes supplémentaires." },
+    { nom: "Coup de bluff", type: "Boost", force: 0, effet: "Double la force d'une carte jouée pour ce tour uniquement." }
+  ];
+
+  let carteSelectionnee = null;
+
+  function afficherMain() {
+    const mainDiv = document.getElementById("main");
+    mainDiv.innerHTML = "";
+    cartes.forEach((carte) => {
+      const div = document.createElement("div");
+      div.className = "carte " + carte.type;
+      div.innerHTML = `<strong>${carte.nom}</strong>${carte.force > 0 ? "<br>Force: " + carte.force : ""}`;
+      div.onclick = () => ouvrirPopup(carte);
+      mainDiv.appendChild(div);
+    });
   }
-  h1, h2 {
-    margin-bottom: 10px;
+
+  function ouvrirPopup(carte) {
+    carteSelectionnee = carte;
+    document.getElementById("popupNom").textContent = carte.nom;
+    document.getElementById("popupType").textContent = "Type: " + carte.type;
+    document.getElementById("popupForce").textContent = carte.force > 0 ? "Force: " + carte.force : "";
+    document.getElementById("popupEffet").textContent = carte.effet;
+    document.getElementById("popupBg").style.display = "flex";
   }
-  .btn {
-    padding: 8px 12px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-bottom: 20px;
+
+  function fermerPopup() {
+    document.getElementById("popupBg").style.display = "none";
   }
-  .btn-inviter {
-    background: #28a745;
-    color: white;
+
+  function jouerCarte() {
+    console.log("Carte jouée:", carteSelectionnee);
+    fermerPopup();
   }
-  .hand {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
+
+  function envoyerInvitation() {
+    alert("Invitation envoyée à votre ami (simulation de notification)"); 
+    // Ici tu peux brancher une API de notification push réelle
   }
-  .carte {
-    padding: 10px;
-    border-radius: 6px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    cursor: pointer;
-    min-width: 120px;
+
+  afficherMain();
+</script>
+
+</body>
+</html>    min-width: 120px;
     color: white;
   }
   .Justicier { background: #facc15; color: #000; }
