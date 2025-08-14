@@ -1,39 +1,91 @@
-import React, { useState } from "react"; import { motion, AnimatePresence } from "framer-motion"; import "tailwindcss/tailwind.css";
+import React, { useState } from "react"; import { motion, AnimatePresence } from "framer-motion";
 
-// Jeu de données des cartes sans éperon const cartes = [ { nom: "Justicier de l'Ouest", type: "Justicier", force: 3, effet: "Protège un joueur ou lui-même en annulant l'effet d'une carte bandit.", }, { nom: "Bandit solitaire", type: "Bandit", force: 2, effet: "Peut voler une carte à un joueur ciblé.", }, { nom: "Soutien logistique", type: "Soutien", force: 0, effet: "Permet à un joueur de piocher deux cartes supplémentaires.", }, { nom: "Coup de bluff", type: "Boost", force: 0, effet: "Double la force d'une carte jouée pour ce tour uniquement.", }, { nom: "Convoyeur de banque", type: "Convoyeur", force: 4, effet: "Permet de transférer une somme d'argent sécurisée à Washington.", } ];
+// Jeu de données des cartes sans éperon const cartes = [ { nom: "Justicier de l'Ouest", type: "Justicier", force: 3, effet: "Protège un joueur ou lui-même en annulant l'effet d'une carte bandit." }, { nom: "Bandit solitaire", type: "Bandit", force: 2, effet: "Peut voler une carte à un joueur ciblé." }, { nom: "Soutien logistique", type: "Soutien", force: 0, effet: "Permet à un joueur de piocher deux cartes supplémentaires." }, { nom: "Coup de bluff", type: "Boost", force: 0, effet: "Double la force d'une carte jouée pour ce tour uniquement." }, { nom: "Convoyeur de banque", type: "Convoyeur", force: 4, effet: "Permet de transférer une somme d'argent sécurisée à Washington." } ];
 
 // Couleurs par type const couleursType = { Justicier: "bg-yellow-400", Bandit: "bg-red-500", Soutien: "bg-blue-500", Boost: "bg-gray-400", Convoyeur: "bg-orange-500" };
 
-export default function App() { const [etape, setEtape] = useState("connexion"); const [carteSelectionnee, setCarteSelectionnee] = useState(null);
+export default function App() { const [carteSelectionnee, setCarteSelectionnee] = useState(null);
 
-return ( <div className="w-full h-screen flex flex-col bg-green-900 text-white"> {etape === "connexion" && ( <div className="flex flex-col items-center justify-center flex-1 p-4"> <h1 className="text-3xl font-bold mb-6">Braquage - Connexion</h1> <button className="bg-blue-600 px-4 py-2 rounded mb-4" onClick={() => setEtape("jeu")} > Créer une offre </button> <textarea
-placeholder="Collez ici le code reçu"
-className="w-80 h-24 text-black p-2 mb-4"
-/> <button className="bg-green-600 px-4 py-2 rounded" onClick={() => setEtape("jeu")} > Rejoindre une partie </button> </div> )}
+const envoyerInvitation = () => { alert("Invitation envoyée à votre ami (simulation)"); // Ici, dans la vraie app : appel backend pour envoyer notification push };
 
-{etape === "jeu" && (
-    <div className="flex flex-col flex-1">
-      <div className="flex-1 p-4 overflow-y-auto">
-        <h2 className="text-2xl font-bold mb-4">Votre main</h2>
-        <div className="flex space-x-4 overflow-x-auto pb-4">
-          {cartes.map((carte, index) => (
-            <motion.div
-              key={index}
-              whileHover={{ scale: 1.05 }}
-              className={`min-w-[120px] p-2 rounded-lg cursor-pointer shadow-lg ${
-                couleursType[carte.type]
-              }`}
-              onClick={() => setCarteSelectionnee(carte)}
-            >
-              <div className="font-bold text-lg">{carte.nom}</div>
-              {carte.force > 0 && (
-                <div className="text-sm">Force: {carte.force}</div>
-              )}
-            </motion.div>
-          ))}
-        </div>
-      </div>
+return ( <div className="w-full h-screen flex flex-col bg-green-900 text-white"> <div className="flex justify-between items-center p-4 bg-green-800"> <h1 className="text-xl font-bold">Braquage - Partie en cours</h1> <button
+onClick={envoyerInvitation}
+className="bg-blue-600 px-3 py-1 rounded"
+> Inviter un ami </button> </div>
+
+<div className="flex-1 p-4 overflow-y-auto">
+    <h2 className="text-2xl font-bold mb-4">Votre main</h2>
+    <div className="flex space-x-4 overflow-x-auto pb-4">
+      {cartes.map((carte, index) => (
+        <motion.div
+          key={index}
+          whileHover={{ scale: 1.05 }}
+          className={`min-w-[120px] p-2 rounded-lg cursor-pointer shadow-lg ${
+            couleursType[carte.type]
+          }`}
+          onClick={() => setCarteSelectionnee(carte)}
+        >
+          <div className="font-bold text-lg">{carte.nom}</div>
+          {carte.force > 0 && (
+            <div className="text-sm">Force: {carte.force}</div>
+          )}
+        </motion.div>
+      ))}
     </div>
+  </div>
+
+  {/* Pop-up carte */}
+  <AnimatePresence>
+    {carteSelectionnee && (
+      <motion.div
+        className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      >
+        <motion.div
+          className={`p-6 rounded-lg max-w-sm w-full text-black ${
+            couleursType[carteSelectionnee.type]
+          }`}
+          initial={{ scale: 0.8 }}
+          animate={{ scale: 1 }}
+          exit={{ scale: 0.8 }}
+        >
+          <h3 className="text-2xl font-bold mb-2">
+            {carteSelectionnee.nom}
+          </h3>
+          <div className="mb-1 font-semibold">
+            Type: {carteSelectionnee.type}
+          </div>
+          {carteSelectionnee.force > 0 && (
+            <div className="mb-1">Force: {carteSelectionnee.force}</div>
+          )}
+          <p className="mb-4">{carteSelectionnee.effet}</p>
+          <div className="flex justify-end space-x-2">
+            <button
+              className="bg-gray-800 text-white px-3 py-1 rounded"
+              onClick={() => setCarteSelectionnee(null)}
+            >
+              Fermer
+            </button>
+            <button
+              className="bg-green-700 text-white px-3 py-1 rounded"
+              onClick={() => {
+                console.log("Jouer la carte:", carteSelectionnee);
+                setCarteSelectionnee(null);
+              }}
+            >
+              Jouer
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    )}
+  </AnimatePresence>
+</div>
+
+); }
+
   )}
 
   {/* Pop-up carte */}
