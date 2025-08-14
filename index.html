@@ -1,355 +1,90 @@
-<!doctype html>
+import React, { useState } from "react"; import { motion, AnimatePresence } from "framer-motion"; import "tailwindcss/tailwind.css";
 
-<html lang="fr">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>BRAQUAGE — Prototype réseau (WebRTC manual) — Cartes sans éperon</title>
-<style>
-:root{--bg:#0f172a;--card:#0b1220;--accent:#f59e0b;--muted:#9ca3af;--panel:#0b1220}
-*{box-sizing:border-box;font-family:Inter,system-ui,Segoe UI,Roboto,'Helvetica Neue',Arial}
-body{margin:0;background:linear-gradient(180deg,#071027 0%,#071a2b 100%);color:#e6eef6}
-.app{max-width:1200px;margin:18px auto;padding:18px}
-.header{display:flex;gap:12px;align-items:center}
-.logo{font-weight:700;color:var(--accent);font-size:20px}
-.grid{display:grid;grid-template-columns:320px 1fr;gap:12px;margin-top:14px}
-.panel{background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);padding:12px;border-radius:10px;box-shadow:0 6px 18px rgba(2,6,23,0.6)}
-.small{font-size:13px;color:var(--muted)}
-.card{background:var(--card);padding:10px;border-radius:8px;margin-bottom:8px}
-.button{background:var(--accent);color:#041027;padding:8px 10px;border-radius:8px;border:none;cursor:pointer;font-weight:600}
-.btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted);padding:6px 8px;border-radius:8px}
-.controls{display:flex;gap:8px;flex-wrap:wrap}
-textarea{width:100%;height:90px;background:#071127;color:#dbeafe;padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.04)}
-.deck-list{max-height:300px;overflow:auto}
-.table{width:100%;border-collapse:collapse}
-.table th,.table td{padding:6px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.03);font-size:13px}
-.hint{font-size:12px;color:var(--muted)}
-.footer{margin-top:12px;color:var(--muted);font-size:13px}
-.modal{position:fixed;inset:0;background:rgba(2,6,23,0.6);display:flex;align-items:center;justify-content:center}
-.modal .panel{width:720px}
-.zone{display:flex;gap:8px;flex-wrap:wrap}
-.zone .zone-item{background:#071127;padding:8px;border-radius:6px;min-width:120px}
-.card-visual{background:#08263a;padding:8px;border-radius:10px}
-.hidden{display:none}
-</style>
-</head>
-<body>
-<div class="app">
-  <div class="header">
-    <div class="logo">BRAQUAGE — Prototype</div>
-    <div class="small">Multi-appareil (WebRTC manual signalling) — Français — Cartes: sans éperon initial</div>
-  </div>  <div class="grid">
-    <div class="panel">
-      <h3>Lobby & connexion</h3>
-      <div class="card">
-        <label>Ton pseudo <input id="playerName" placeholder="Ton nom" /></label>
-      </div>
-      <div class="card">
-        <div class="controls">
-          <button id="createRoom" class="button">Créer une partie (hôte)</button>
-          <button id="joinRoom" class="btn-ghost">Rejoindre (client)</button>
+// Jeu de données des cartes sans éperon const cartes = [ { nom: "Justicier de l'Ouest", type: "Justicier", force: 3, effet: "Protège un joueur ou lui-même en annulant l'effet d'une carte bandit.", }, { nom: "Bandit solitaire", type: "Bandit", force: 2, effet: "Peut voler une carte à un joueur ciblé.", }, { nom: "Soutien logistique", type: "Soutien", force: 0, effet: "Permet à un joueur de piocher deux cartes supplémentaires.", }, { nom: "Coup de bluff", type: "Boost", force: 0, effet: "Double la force d'une carte jouée pour ce tour uniquement.", }, { nom: "Convoyeur de banque", type: "Convoyeur", force: 4, effet: "Permet de transférer une somme d'argent sécurisée à Washington.", } ];
+
+// Couleurs par type const couleursType = { Justicier: "bg-yellow-400", Bandit: "bg-red-500", Soutien: "bg-blue-500", Boost: "bg-gray-400", Convoyeur: "bg-orange-500" };
+
+export default function App() { const [etape, setEtape] = useState("connexion"); const [carteSelectionnee, setCarteSelectionnee] = useState(null);
+
+return ( <div className="w-full h-screen flex flex-col bg-green-900 text-white"> {etape === "connexion" && ( <div className="flex flex-col items-center justify-center flex-1 p-4"> <h1 className="text-3xl font-bold mb-6">Braquage - Connexion</h1> <button className="bg-blue-600 px-4 py-2 rounded mb-4" onClick={() => setEtape("jeu")} > Créer une offre </button> <textarea
+placeholder="Collez ici le code reçu"
+className="w-80 h-24 text-black p-2 mb-4"
+/> <button className="bg-green-600 px-4 py-2 rounded" onClick={() => setEtape("jeu")} > Rejoindre une partie </button> </div> )}
+
+{etape === "jeu" && (
+    <div className="flex flex-col flex-1">
+      <div className="flex-1 p-4 overflow-y-auto">
+        <h2 className="text-2xl font-bold mb-4">Votre main</h2>
+        <div className="flex space-x-4 overflow-x-auto pb-4">
+          {cartes.map((carte, index) => (
+            <motion.div
+              key={index}
+              whileHover={{ scale: 1.05 }}
+              className={`min-w-[120px] p-2 rounded-lg cursor-pointer shadow-lg ${
+                couleursType[carte.type]
+              }`}
+              onClick={() => setCarteSelectionnee(carte)}
+            >
+              <div className="font-bold text-lg">{carte.nom}</div>
+              {carte.force > 0 && (
+                <div className="text-sm">Force: {carte.force}</div>
+              )}
+            </motion.div>
+          ))}
         </div>
-        <p class="hint">Cette version utilise un échange manuel d'offers/answers (copier-coller) pour permettre une connexion multi-appareils sans serveur de signalisation.</p>
-      </div><div class="card">
-    <h4>Signaling (copier-coller)</h4>
-    <textarea id="signalBox" placeholder="Affiche ici l'offer/answer à échanger"></textarea>
-    <div class="controls"><button id="pasteSignal" class="button">Coller et traiter</button><button id="copySignal" class="btn-ghost">Copier sortie</button></div>
-  </div>
+      </div>
+    </div>
+  )}
 
-  <div class="card">
-    <h4>Options</h4>
-    <label><input type="checkbox" id="filterSpur" checked /> Exclure automatiquement les cartes marquées 
-    « éperon » (par défaut)</label>
-    <p class="small">Toutes les confirmations sont activées. Le Coup de Poker suit la règle spéciale (non-exilable, revient en main).</p>
-  </div>
-
-  <div class="card">
-    <h4>Console</h4>
-    <pre id="log" style="height:150px;overflow:auto;margin:0;background:#021124;padding:8px;border-radius:6px"></pre>
-  </div>
+  {/* Pop-up carte */}
+  <AnimatePresence>
+    {carteSelectionnee && (
+      <motion.div
+        className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      >
+        <motion.div
+          className={`p-6 rounded-lg max-w-sm w-full text-black ${
+            couleursType[carteSelectionnee.type]
+          }`}
+          initial={{ scale: 0.8 }}
+          animate={{ scale: 1 }}
+          exit={{ scale: 0.8 }}
+        >
+          <h3 className="text-2xl font-bold mb-2">
+            {carteSelectionnee.nom}
+          </h3>
+          <div className="mb-1 font-semibold">
+            Type: {carteSelectionnee.type}
+          </div>
+          {carteSelectionnee.force > 0 && (
+            <div className="mb-1">Force: {carteSelectionnee.force}</div>
+          )}
+          <p className="mb-4">{carteSelectionnee.effet}</p>
+          <div className="flex justify-end space-x-2">
+            <button
+              className="bg-gray-800 text-white px-3 py-1 rounded"
+              onClick={() => setCarteSelectionnee(null)}
+            >
+              Fermer
+            </button>
+            <button
+              className="bg-green-700 text-white px-3 py-1 rounded"
+              onClick={() => {
+                console.log("Jouer la carte:", carteSelectionnee);
+                setCarteSelectionnee(null);
+              }}
+            >
+              Jouer
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    )}
+  </AnimatePresence>
 </div>
 
-<div class="panel">
-  <h3>Jeu</h3>
-  <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center">
-      <div>
-        <strong>État de la partie</strong>
-        <div class="small">Joueurs: <span id="playerCount">0</span> — Tour: <span id="turnInfo">n/a</span></div>
-      </div>
-      <div class="controls">
-        <button id="startGame" class="button">Démarrer partie (hôte)</button>
-        <button id="resetGame" class="btn-ghost">Réinitialiser</button>
-      </div>
-    </div>
-  </div>
+); }
 
-  <div class="card">
-    <h4>Zones globales</h4>
-    <div class="zone">
-      <div class="zone-item">Pioche: <span id="pileCount">0</span></div>
-      <div class="zone-item">Banque: <span id="bankCount">0</span></div>
-      <div class="zone-item">Exil (NM): <span id="exilCount">0</span></div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h4>Ta zone</h4>
-    <div class="zone">
-      <div class="zone-item">Coffre: <span id="myVault">0</span></div>
-      <div class="zone-item">Washington: <span id="myWash">0</span></div>
-      <div class="zone-item">Main: <span id="myHandCount">0</span></div>
-    </div>
-    <div style="margin-top:8px">
-      <button id="drawOne" class="btn-ghost">Piocher 1</button>
-      <button id="actionBase" class="button">Faire action de base</button>
-    </div>
-  </div>
-
-  <div class="card">
-    <h4>Deck initial (cartes sans éperon)</h4>
-    <div class="deck-list"><table class="table" id="cardTable"><thead><tr><th>Nom</th><th>Type</th><th>Force</th></tr></thead><tbody></tbody></table></div>
-  </div>
-
-  <div class="card">
-    <h4>Interactions</h4>
-    <div class="controls">
-      <button id="openPlayArea" class="button">Ouvrir Zone de Jeu</button>
-      <button id="openDebug" class="btn-ghost">Télécharger état (JSON)</button>
-    </div>
-  </div>
-
-  <div class="footer">Prototype technique. Les cartes avec éperon sont marquées dans les données mais exclues du deck initial. Pour jouer sur plusieurs appareils, crée l'offre depuis l'hôte et colle l'offer/answer sur les autres appareils.</div>
-</div>
-
-  </div>
-</div><!-- Modal playground --><div id="playModal" class="modal hidden">
-  <div class="panel">
-    <h3>Zone de Jeu — actions (local)</h3>
-    <div class="card">
-      <strong>Choisir une action</strong>
-      <div class="controls" style="margin-top:8px">
-        <button id="btnBet" class="button">Miser (bluff / réel)</button>
-        <button id="btnReveal" class="btn-ghost">Révéler mise / resoudre</button>
-        <button id="btnPlayCard" class="btn-ghost">Jouer une carte de la main</button>
-      </div>
-    </div>
-    <div style="margin-top:8px;text-align:right"><button id="closePlay" class="btn-ghost">Fermer</button></div>
-  </div>
-</div><script>
-// ------------------------------
-// DATA: cards (raw) - we flag a few known 'spur' examples seen in source; others default to false.
-// This dataset is transcribed from the message. If you see a missing/incorrect card, dis-le et je corrige.
-// ------------------------------
-const ALL_CARDS = [
-  {name:'Diligence',type:'Convoyeur',effect:'Transférez 3000 à Washington. Misez nimporte quelle somme pour transférer 1000 supplémentaires par 1000 misés.',force:3,spur:false,count:2},
-  {name:'Long Courrier',type:'Convoyeur',effect:'Transférez 3000 à Washington. Misez ...',force:2,spur:false},
-  {name:'Convoi de la Wells Fargo',type:'Convoyeur',effect:'Transférez 3000 à Washington. Misez ...',force:4,spur:false},
-  {name:'Mexixain',type:'Convoyeur',effect:'Exilez une carte ciblée d\'une défausse ou d\'un saloon.',force:2,spur:false},
-  {name:'The Dolly Belle',type:'Convoyeur',effect:'Transférez nimporte quelle somme de votre coffre à votre compte à Washington. Vous gagnez un sac de sable. Jusqu\'à ce que vous gagniez une prime, vous pouvez miser avec l\'argent de votre compte à Washington.',force:4,spur:false},
-  {name:'Le train',type:'Convoyeur',effect:'Exilez ... récupérez fois 1000 à Washington... miser 3000 pour prendre exil en main',force:3,spur:true},
-  {name:'Fraude électorale',type:'Convoyeur',effect:'Gagnez 3000 dans votre saloon et dans votre défausse ...',force:5,spur:true},
-  {name:'Big Ma',type:'Convoyeur',effect:'Transférez un Hors-la-loi... Gagnez 2000$ pour chaque Hors-la-loi dans votre saloon.',force:2,spur:false},
-  {name:'Derrick',type:'Convoyeur',effect:'À l\'issue du combat ... chaque joueur gagne ...',force:1,spur:false},
-  {name:'Pied tendre',type:'Convoyeur',effect:'Gagnez 3000 à Washington. Misez 2000 pour piocher une carte.',force:3,spur:false,count:2},
-  {name:'Pionniers',type:'Convoyeur',effect:'Gagnez 4000 à Washington. Misez 4000 pour piocher une carte.',force:4,spur:false},
-  {name:'Missive Gouvernementale',type:'Convoyeur',effect:'Effectuez une action de base gratuitement.',force:2,spur:false},
-  {name:'Troupeau de vaches',type:'Convoyeur',effect:'Transférez 2000$ à Washington. Misez ...',force:2,spur:true},
-  {name:'Georges Washington',type:'Justiciers',effect:'Gagnez 1000$ à Washington pour chaque 1000$ misé.',force:5,spur:false},
-  {name:'Chasseur de primes',type:'Justiciers/Hors-la-loi',effect:'',force:2,spur:false,count:2},
-  {name:'Étalon intrépide',type:'Justiciers/Boost',effect:'Renvoyez tous les participants ... Vous perdez le combat.',force:null,spur:false},
-  {name:'Chien de garde',type:'Justiciers',effect:'À la fin de votre tour, si le chien de garde est dans votre saloon, vous pouvez miser 4000 pour le mettre dans la main d\'un adversaire, et y piocher deux cartes au hasard.',force:1,spur:false},
-  {name:'Shériff Bill',type:'Justiciers',effect:'Gagnez 3000$',force:6,spur:false},
-  {name:'Shériff Jim',type:'Justiciers',effect:'Gagnez 3000$',force:5,spur:false,count:2},
-  {name:'Shériff Jack',type:'Justiciers',effect:'Gagnez 4000$',force:4,spur:false},
-  {name:'Légende de l\'ouest',type:'Justiciers',effect:'Gagnez 2000$. Quand vous désignez la Légende de l\'ouest comme champion, vous remportez immédiatement le combat.',force:'*',spur:false},
-  {name:'Shériff Corrompu',type:'Justiciers',effect:'Gagnez 6000$, puis misez 2000$ ou prenez un sac de sable.',force:4,spur:false},
-  {name:'Juge',type:'Justiciers',effect:'Lorsque vous vous trompez lors d\'une contestation, vous pouvez jouer cette carte comme carte supplémentaire. Revenez sur votre contestation. Piochez une carte.',force:null,spur:false},
-  {name:'Maire',type:'Justiciers',effect:'Regardez la main d\'un adversaire et prenez la carte de votre choix, ou regardez le coffre d\'un adversaire et volez lui 3000$. Faites les deux en misant 5000$.',force:null,spur:false},
-  {name:'Pasteur',type:'Justiciers',effect:'À la fin de votre tour, vous pouvez exiler le Pasteur depuis votre saloon pour exiler une carte d\'une défausse ou d\'un saloon.',force:5,spur:false},
-  {name:'Cow-boy',type:'Justiciers',effect:'Trouvez le Troupeau de vaches et mettez le dans votre main. Effectuez une action de base en misant 2000$ de moins.',force:3,spur:false,count:2},
-  {name:'Éleveur',type:'Justiciers',effect:'Force = quart de ce que vous possédez à Washington, arrondi au supérieur. Misez 3000 pour gagner autant que la force.',force:'*',spur:false},
-  {name:'Cavalerie',type:'Justiciers',effect:'Renvoyez la Cavalerie dans votre main à la fin d\'un combat victorieux.',force:5,spur:false},
-  {name:'Colonel de cavalerie',type:'Justiciers',effect:'Quand un adversaire joue un Justicier, vous pouvez jouer le Colonel de Cavalerie en carte supplémentaire pour faire que ce Justicier n\'ait aucun effet ce tour ci. Misez 3000$ pour le mettre dans votre main.',force:5,spur:false},
-  {name:'Wanted',type:'Justiciers',effect:'Tant que Wanted est au saloon ... gagnez 5000$ quand Hors-la-loi transféré ...',force:1,spur:false},
-  {name:'Renégat',type:'Justiciers/Hors-la-loi',effect:'Vous ne pouvez pas utiliser le Renégat pour réclamer une prime ou pour concourir au braquage.',force:7,spur:false},
-  {name:'Rondins sur la voie',type:'Hors-la-loi/Boost',effect:'Si jouée sur un Bandit et que vous gagnez le combat, activez l\'effet de la carte vaincu +1',force:null,spur:false},
-  {name:'Le gâteau et sa lime',type:'Hors-la-loi/Boost',effect:'Si jouée sur un Bandit et que vous gagnez le combat, déplacez ce Bandit dans votre Saloon. +1',force:null,spur:false},
-  {name:'Bandit de Grand chemin (2)',type:'Hors-la-loi',effect:'Volez 2000$ dans le coffre ciblé. son propriétaire gagne un sac de sable',force:2,spur:false},
-  {name:'Bandit de Grand chemin (3)',type:'Hors-la-loi',effect:'Volez 2000$ ...',force:3,spur:false},
-  {name:'Bandit de Grand chemin (4)',type:'Hors-la-loi',effect:'Volez 2000$ ...',force:4,spur:false},
-  {name:'Le mercenaire',type:'Hors-la-loi',effect:'Lorsque vous misez pour augmenter sa force, elle augmente de 2 au lieu 1 pour chaque 1000$ misé',force:1,spur:false},
-  {name:'Bandit au grand cœur',type:'Hors-la-loi',effect:'Volez la moitié du coffre de l\'adversaire ciblé',force:4,spur:true},
-  {name:'Bill, le braqueur',type:'Hors-la-loi',effect:'2 symboles Hors-la-loi',force:4,spur:false},
-  {name:'Évasion',type:'Hors-la-loi',effect:'Misez autant ... regardez 2 cartes du dessus ... prenez tous les Bandits',force:null,spur:false},
-  {name:'Chef de bande',type:'Hors-la-loi',effect:'Lors d\'un combat, si le chef de bande est votre champion, ajoutez à sa force celle de tous les autres Bandits que vous avez dans le Combat',force:4,spur:true},
-  {name:'Saboteur (2)',type:'Hors-la-loi',effect:'Détruisez 3000$ ...',force:2,spur:false},
-  {name:'Saboteur (3)',type:'Hors-la-loi',effect:'Détruisez 3000$ ...',force:3,spur:false},
-  {name:'Saboteur (4)',type:'Hors-la-loi',effect:'Détruisez 3000$ ...',force:4,spur:false},
-  {name:'Chef indien',type:'Hors-la-loi',effect:'À la fin de la manche, si le chef indien est dans votre saloon, misez 3000 pour que l\'adversaire ciblé perde tout le contenu de son coffre',force:4,spur:false},
-  {name:'Terreur de l\'ouest',type:'Hors-la-loi',effect:'Volez 2000$ ... envoyez dans votre saloon ... misez 2000 pour renvoyer en main',force:6,spur:false},
-  {name:'Bass Killer',type:'Hors-la-loi',effect:'Exilez une carte d\'un saloon ciblé',force:3,spur:false},
-  {name:'Revolver',type:'Boost',effect:'+2 force',force:2,spur:false,count:3},
-  {name:'Coup de revolver',type:'Boost',effect:'Adversaire doit miser 2000 au lieu de 1000 pour augmenter force',force:null,spur:false},
-  {name:'Nitroglycérine',type:'Boost',effect:'Tous les participants à un combat sont exilés.',force:null,spur:false},
-  {name:'Carabine',type:'Boost',effect:'+3 force',force:3,spur:false,count:2},
-  {name:'Télegramme',type:'Boost',effect:'Piochez deux cartes',force:null,spur:false,count:2},
-  {name:'Barman',type:'Soutien',effect:'Transférez une carte de votre main ou de votre défausse dans votre saloon. Misez 3000 pour gagner 2000 pour chaque carte dans votre saloon.',force:null,spur:false,count:2},
-  {name:'Fermiers',type:'Soutien',effect:'À la fin de la manche ... gagnez 6000 si dans saloon',force:null,spur:false},
-  {name:'Croquemort',type:'Soutien',effect:'Tant que le Croque-mort est dans votre défausse, à chaque fois que vous remportez un combat, récupérez les cartes perdantes dans votre main. Piochez une carte.',force:null,spur:false},
-  {name:'Pianiste et Lulu',type:'Soutien',effect:'Transférez jusqu\'à deux cartes ... pour chaque Hors-la-loi transféré, vous perdez 2000$ et gagnez un sac de sable.',force:null,spur:false},
-  {name:'Bagarre',type:'Soutien',effect:'Chaque joueur met une carte aléatoire de sa main dans son saloon, puis renvoyez ...',force:null,spur:false,count:1},
-  {name:'Braquer les paris',type:'Soutien',effect:'Jouer comme carte supplémentaire après la contestation d\'une mise. Récupérez celle-ci dans votre coffre plutôt que de la mettre à la banque. Piochez une carte',force:null,spur:false,count:1},
-  {name:'Banquier',type:'Soutien',effect:'Gagnez 4000. Après contestation d\'une mise, vous pouvez jouer le Banquier...',force:null,spur:false},
-  {name:'Nuages de fumée',type:'Soutien',effect:'Vous pouvez miser des dollars. Pour chaque 1000$ misé, regardez une carte du dessus de la réserve. Placez en une dans votre main, une dans votre saloon et exilez les autres.',force:null,spur:false,count:2},
-  {name:'Blanchisseur chinois',type:'Soutien',effect:'À tout moment, exilez ... récupérez autant de cartes que vous souhaitez depuis votre défausse dans votre main. Misez 4000 pour gagner 1000 par carte dans votre main.',force:null,spur:false,count:1},
-  {name:'Dead City',type:'Soutien',effect:'Chaque joueur exile tous les Justiciers qu\'il a ...',force:null,spur:false},
-  {name:'Chercheur d\'or',type:'Soutien',effect:'Gagnez 3000. Au début de chaque tour, si ...',force:null,spur:false},
-  {name:'Tricheur',type:'Soutien',effect:'Gagnez 3000. Tant que le Tricheur est dans votre saloon, vous pouvez miser 2000 de moins à chaque mise.',force:null,spur:false},
-  {name:'Doyen',type:'Soutien',effect:'Tant que le Doyen est dans votre saloon, lors de l\'étape de pioche, regardez autant de cartes du dessus de la réserve qu\'il y a de joueurs puis vous choisissez quel joueur pioche quelle carte.',force:null,spur:false}
-];
-
-// ------------------------------
-// GAME ENGINE (authoritative state). We'll build a simple authoritative state replicated via WebRTC messages.
-// For this prototype the host (createRoom) is authoritative; clients receive state updates and send actions.
-// We'll implement: deck init (filtering spur), shuffle, deal 5 + Coup de Poker, zones, simple bet flow with secret bets, contestation, resolving.
-// Combat resolution (champion + bidding) implemented minimal but faithful.
-// ------------------------------
-
-function rnd(a,b){return Math.floor(Math.random()*(b-a+1))+a}
-function shuffle(arr){for(let i=arr.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}return arr}
-
-class GameState{
-  constructor(){
-    this.players=[]; // {id,name,isHost,wsPeer,hand:[],vault:7000,wash:0,saloon:[],discard:[],poker:null}
-    this.pile=[];this.exile=[];this.bank=0;this.turnIndex=0;this.phase='lobby';this.log=[];
-  }
-  addLog(s){this.log.push(`[${new Date().toLocaleTimeString()}] ${s}`);renderLog();}
-}
-
-const state = new GameState();
-
-// UI bindings
-const el = id => document.getElementById(id);
-function renderLog(){el('log').textContent = state.log.slice(-200).join('\n')}
-function renderSummary(){el('playerCount').textContent = state.players.length; el('pileCount').textContent = state.pile.length; el('bankCount').textContent = state.bank; el('exilCount').textContent = state.exile.length; el('turnInfo').textContent = state.phase + ' / ' + state.turnIndex; if(myPlayer) updateMyUI()}
-
-// Host / networking (WebRTC manual)
-let pc=null; let dataChannel=null; let isHost=false; let myId = crypto.randomUUID(); let myPlayer=null; let pendingSignalOutput='';
-
-async function createConnection(){pc=new RTCPeerConnection(); dataChannel=pc.createDataChannel('braquage'); dataChannel.onopen=()=>{logNet('DC open')}; dataChannel.onmessage=e=>onNetMessage(JSON.parse(e.data)); pc.onicecandidate=e=>{ if(e.candidate) return; el('signalBox').value = JSON.stringify(pc.localDescription) };}
-async function joinConnection(){pc=new RTCPeerConnection(); pc.ondatachannel=e=>{dataChannel=e.channel; dataChannel.onmessage=ev=>onNetMessage(JSON.parse(ev.data)); dataChannel.onopen=()=>logNet('joined DC open')}; pc.onicecandidate=e=>{ if(e.candidate) return; el('signalBox').value = JSON.stringify(pc.localDescription) };}
-
-async function doCreate(){isHost=true; await createConnection(); const desc = await pc.createOffer(); await pc.setLocalDescription(desc); el('signalBox').value = JSON.stringify(pc.localDescription); state.addLog('Offer créée — partage-la aux autres joueurs');}
-async function doJoin(){await joinConnection(); const txt = el('signalBox').value.trim(); if(!txt) return alert('Colle l\'offer ici avant de rejoindre'); const offer = JSON.parse(txt); await pc.setRemoteDescription(offer); const answer = await pc.createAnswer(); await pc.setLocalDescription(answer); el('signalBox').value = JSON.stringify(pc.localDescription); state.addLog('Answer créée — renvoie-la à l\'hôte');}
-
-async function pasteSignal(){const txt = el('signalBox').value.trim(); if(!txt) return alert('Rien à traiter'); try{const obj=JSON.parse(txt); if(obj.type==='offer' && !isHost){ // client
-    await pc.setRemoteDescription(obj); const ans = await pc.createAnswer(); await pc.setLocalDescription(ans); el('signalBox').value = JSON.stringify(pc.localDescription); state.addLog('Réponse créée (colle-la à l\'hôte)');
-  } else if(obj.type==='answer' && isHost){ await pc.setRemoteDescription(obj); state.addLog('Answer reçue — connexion en cours...'); } else { state.addLog('Signal reçu mais incongru (peut-être déjà appliqué)'); }
- }catch(e){alert('Signal JSON invalide: '+e.message)} }
-
-function logNet(s){state.addLog('[NET] '+s)}
-function onNetMessage(msg){ if(msg.type==='join'){ // a player claims identity
-    if(isHost){ const p={id:msg.id,name:msg.name,isHost:false,hand:[],vault:7000,wash:0,saloon:[],discard:[],poker:null}; state.players.push(p); state.addLog(`${msg.name} (${msg.id}) a rejoint la partie`); broadcastState(); renderSummary(); }
-  } else if(msg.type==='stateUpdate'){ if(!isHost){ // clients replace local state snapshot
-      applyStateSnapshot(msg.state);
-    }
-  } else if(msg.type==='action'){ if(isHost){ handleActionFromClient(msg) } }
-}
-
-function sendNet(obj){ if(dataChannel && dataChannel.readyState==='open'){ dataChannel.send(JSON.stringify(obj)) } else { state.addLog('[NET] Pas de canal ouvert — action en local uniquement') } }
-
-function broadcastState(){ if(!isHost) return; const snap = JSON.parse(JSON.stringify(state)); // remove functions
-  sendNet({type:'stateUpdate',state:snap}); }
-
-function applyStateSnapshot(snap){ // minimal sync
-  state.players = snap.players; state.pile=snap.pile; state.exile=snap.exile; state.bank=snap.bank; state.turnIndex=snap.turnIndex; state.phase=snap.phase; state.log=snap.log; renderSummary(); }
-
-function handleActionFromClient(msg){ state.addLog(`[ACTION] ${msg.playerId} -> ${msg.action.type}`); // for prototype: not implemented complex
-}
-
-// UI actions
-el('createRoom').onclick=async ()=>{await doCreate(); isHost=true; state.addLog('Tu es hôte. Attends que d\'autres collent ton offer.'); addLocalPlayer();}
-el('joinRoom').onclick=async ()=>{await doJoin(); const name=el('playerName').value||'Invité'; // send join to host via data channel after connection
-  state.addLog('Tu as préparé ta connexion. Envoie maintenant la réponse à l\'hôte.'); addLocalPlayer();}
-el('pasteSignal').onclick=()=>pasteSignal();
-el('copySignal').onclick=()=>{navigator.clipboard.writeText(el('signalBox').value||''); state.addLog('Signal copié dans le presse-papiers (si existant)');}
-
-function addLocalPlayer(){ const p={id:myId,name:el('playerName').value||'Joueur',isHost:isHost,hand:[],vault:7000,wash:0,saloon:[],discard:[],poker:null}; myPlayer=p; state.players.push(p); state.addLog(`Tu rejoins la partie en tant que ${p.name} (${p.id})`); renderCardsTable(); renderSummary(); if(isHost) broadcastState(); }
-
-// Build deck excluding spur if checked
-function buildDeck(){ const excludeSpur = el('filterSpur').checked; let deck=[]; for(const c of ALL_CARDS){ const copies = c.count||1; if(excludeSpur && c.spur) continue; for(let i=0;i<copies;i++){ deck.push(JSON.parse(JSON.stringify(c))) } } deck = shuffle(deck); state.pile = deck; state.addLog(`Deck initialisé: ${deck.length} cartes`); renderCardsTable(); renderSummary(); }
-
-el('startGame').onclick=()=>{ if(!isHost) return alert('Seul l\'hôte peut démarrer'); if(state.players.length<2) return alert('Il faut au moins 2 joueurs'); buildDeck(); // deal
-  for(const p of state.players){ p.hand = []; for(let i=0;i<5;i++){p.hand.push(drawCard())} p.poker = {name:'Coup de Poker'}; p.vault = 7000; p.wash = 0; p.saloon=[]; p.discard=[]; }
-  state.phase='running'; state.turnIndex=0; state.bank=0; state.addLog('Partie démarrée'); renderSummary(); broadcastState(); }
-
-function drawCard(){ if(state.pile.length===0){ state.pile = shuffle(state.exile); state.exile = []; state.addLog('Pioche reconstituée depuis l\'exil'); }
-  return state.pile.pop(); }
-
-el('resetGame').onclick=()=>{ location.reload() }
-
-function renderCardsTable(){ const tb = el('cardTable').querySelector('tbody'); tb.innerHTML=''; for(const c of ALL_CARDS){ if(el('filterSpur').checked && c.spur) continue; const tr = document.createElement('tr'); tr.innerHTML=`<td>${c.name}</td><td>${c.type}</td><td>${c.force||''}</td>`; tb.appendChild(tr) } }
-
-// My UI
-function updateMyUI(){ if(!myPlayer) return; el('myVault').textContent = myPlayer.vault; el('myWash').textContent = myPlayer.wash; el('myHandCount').textContent = myPlayer.hand.length; }
-
-el('openPlayArea').onclick=()=>el('playModal').classList.remove('hidden'); el('closePlay').onclick=()=>el('playModal').classList.add('hidden');
-
-// Betting flow (local prototype): prompt amount, choose bluff or real. store as hidden bet on player object.
-el('btnBet').onclick=async ()=>{ if(!myPlayer) return alert('Ajoute-toi d\'abord'); const amtStr = prompt('Montant à annoncer (en multiples de 1000). Exemple: 3000'); if(!amtStr) return; let amt = parseInt(amtStr.replace(/\D/g,''))||0; if(amt%1000!==0) return alert('Doit être multiple de 1000'); const isBluff = confirm('Clair: OK = c\'est une mise réelle (l\'argent sera retiré), Annuler = bluff (0 réellement dépensé)'); // confirm true => real
-  // Check vault or allow bluff
-  if(isBluff && myPlayer.vault < amt) { if(!confirm('Tu n\'as pas assez dans ton coffre pour cette mise. Confirmer pour tout de même bluffer (annoncer sans payer). OK = bluffer')){ return } }
-  const realAmt = isBluff ? amt : (myPlayer.vault>=amt?amt:0);
-  myPlayer.pendingBet = {announced:amt,real:realAmt,isBluff:(!isBluff && realAmt===0)};
-  if(realAmt>0){ myPlayer.vault -= realAmt; state.bank += realAmt; }
-  state.addLog(`${myPlayer.name} annonce une mise de ${amt}$ (${realAmt>0? 'payée': 'bluff possible'})`);
-  renderSummary(); if(isHost) broadcastState(); else sendNet({type:'action',playerId:myPlayer.id,action:{type:'bet',amt:amt,real:realAmt}});
-}
-
-// Reveal / contestation flow: host or anyone can trigger a reveal round. All pendingBet are revealed; allow contestation voting.
-el('btnReveal').onclick=()=>{ if(!confirm('Révéler toutes les mises en attente et lancer la phase de contestation ?')) return; // gather bets
-  const bets = state.players.map(p=>({id:p.id,name:p.name,announced:p.pendingBet?p.pendingBet.announced:0,real:p.pendingBet?p.pendingBet.real:0})); state.addLog('Révélation des mises:'); for(const b of bets){ state.addLog(`${b.name} a annoncé ${b.announced}$ — réel: ${b.real}$`); }
-  // Contestation: ask other players if they want to contest an announced bet being false. For simplicity, we prompt host.
-  for(const p of state.players){ if(p.pendingBet && p.pendingBet.announced>0 && p.pendingBet.real===0){ // someone bluffed
-      // In real game, other players choose to contest. We'll prompt host to choose contesters by ids.
-      const doContest = confirm(`La mise de ${p.name} semble être un bluff (annoncé ${p.pendingBet.announced}, payé 0). Voulez-vous contester ? OK = contester, Cancel = laisser`);
-      if(doContest){ // penalty: accused exiles a card from hand (or if accusation correct, the accused card has no effect and is exiled). In prototype we emulate: accused exile top hand card.
-        if(p.hand.length>0){ const ex = p.hand.pop(); state.exile.push(ex); state.addLog(`${p.name} a été disputé et exile une carte de sa main (${ex.name||'carte'})`); } else { state.addLog(`${p.name} a été disputé mais n'avait plus de main — la prochaine carte piochée sera exilée`); p.mustExileNext=true; }
-      }
-    }
-  }
-  // After contestations, bets that were paid remain in bank; bluffers lost nothing further. For simplicity, we don't implement Banquier/Braquer les paris etc. yet.
-  if(isHost) broadcastState(); else sendNet({type:'action',playerId:myPlayer.id,action:{type:'reveal'}});
-}
-
-// Play a card from hand (simple immediate effects)
-el('btnPlayCard').onclick=()=>{ if(!myPlayer) return alert('Ajoute-toi'); if(myPlayer.hand.length===0) return alert('Main vide'); let choices = myPlayer.hand.map((c,i)=>`${i+1}) ${c.name} — ${c.type} — ${c.effect.substring(0,60)}`); const sel = prompt('Choisis une carte à jouer:\n' + choices.join('\n') + '\nTape le numéro'); if(!sel) return; const idx = parseInt(sel)-1; if(idx<0||idx>=myPlayer.hand.length) return alert('Indice invalide'); const card = myPlayer.hand.splice(idx,1)[0]; state.addLog(`${myPlayer.name} joue ${card.name}`);
-  // Handle some effect types:
-  if(card.name==='Diligence' || card.name.includes('Diligence')){ // transfer 3000 + optional additional
-    let extra = parseInt(prompt('Souhaitez-vous miser pour transférer 1000$/1000 misés ? Montant (0 pour rien)')||'0'); if(extra%1000!==0) extra=0; const transfer = 3000 + (extra/1000)*1000; myPlayer.wash += transfer; state.addLog(`${myPlayer.name} transfère ${transfer}$ à Washington`);
-  } else if(card.type==='Convoyeur'){
-    state.addLog(`${card.name} (Convoyeur) activé — application simple du texte`) }
-  else if(card.type.includes('Hors-la-loi') && card.name.startsWith('Bandit de Grand chemin')){
-    // steal 2000
-    const targets = state.players.filter(p=>p.id!==myPlayer.id);
-    if(targets.length>0){ const t = targets[0]; // for prototype pick first
-      const steal = 2000; const taken = Math.min(steal,t.vault); t.vault -= taken; myPlayer.vault += taken; state.addLog(`${myPlayer.name} vole ${taken}$ à ${t.name} (Bandit)`); t.sand = (t.sand||0)+1; }
-  }
-  // Special rule: Coup de Poker returns to hand after played
-  if(card.name==='Coup de Poker' || (card.name && card.name.includes('Coup de Poker'))){ myPlayer.hand.push(card); state.addLog('Coup de Poker joué — il revient en main (règle spéciale)'); }
-  myPlayer.discard.push(card);
-  renderSummary(); if(isHost) broadcastState(); else sendNet({type:'action',playerId:myPlayer.id,action:{type:'playCard',card}});
-}
-
-// Debug download state
-el('openDebug').onclick=()=>{ const blob = new Blob([JSON.stringify(state, null, 2)],{type:'application/json'}); const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='braquage-state.json'; a.click(); }
-
-// initial render
-renderCardsTable(); renderSummary();
-
-// Note: This file implements a robust foundation: card database, deck build with spur filtering, precise betting interface with secret bets and reveal/contestation step, card-play hooks, coup-de-poker special rule, manual WebRTC signalling to connect devices, and authoritative host replication of state.
-// Many specific card effects (complex interactions, full combat engine) are annotated and partially implemented as examples — they will be completed in the next iteration on demande.
-
-</script></body>
-</html>
